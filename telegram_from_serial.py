@@ -32,7 +32,7 @@ def get_datastream(feed, datastream, tag):
         return datastream
     except:
         if debugging:
-            print "Creating new datastream"
+            print "Creating new datastream %s" % datastream
         datastream = feed.datastreams.create(datastream, tags=tag)
         return datastream
 
@@ -179,11 +179,14 @@ while True:
                 # Print nicely formatted string
                 print("{0:<63}{1:>8}".format(list_of_interesting_codes[code], value))
                 # Push data to Xively
+                # Fill tag with description
                 tag = list_of_interesting_codes[code]
-                # Remove all non-word characters (everything except numbers and letters)
-                tag = re.sub(r"[^\w\s\(\)]", '', tag)
+                # Make input data safe
+                # Channel ID (only allows +, -, _, letters and numbers)
+                # Remove all other characters
+                code = re.sub(r"[^A-Za-z0-9\-\_\+]", ' ', code)
                 # Replace all runs of whitespace with a single dash
-                tag = re.sub(r"\s+", '-', tag)
+                code = re.sub(r"\s+", '-', code)
                 # Create datastream and fill
                 datastream = get_datastream(feed, code, tag)
                 datastream.max_value = None
