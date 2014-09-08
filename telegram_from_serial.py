@@ -1,14 +1,42 @@
 #!/usr/bin/env python2
 # Python script to retrieve and parse a DSMR telegram from a P1 port
 
+import os
 import re
 import sys
 import serial
+import xively
+import datetime
+import requests
 import crcmod.predefined
+
 
 # Debugging settings
 production = True   # Use serial or file as input
 debugging = 1   # Show extra output
+# Xively settings
+# extract feed_id and api_key from environment variables
+FEED_ID = os.environ["FEED_ID"]
+API_KEY = os.environ["API_KEY"]
+# initialize api client
+api = xively.XivelyAPIClient(API_KEY)
+
+
+# function to return a datastream object. This either creates a new datastream,
+# or returns an existing one
+def get_datastream(feed, datastream, tag):
+    try:
+        datastream = feed.datastreams.get(datastream)
+        if debugging:
+            print "Found existing datastream"
+        return datastream
+    except:
+        if debugging:
+            print "Creating new datastream"
+        datastream = feed.datastreams.create(datastream, tags=tag)
+        return datastream
+
+
 # DSMR interesting codes
 list_of_interesting_codes = {
     '1-0:1.8.1': 'Meter Reading electricity delivered to client (Tariff 1) in kWh',
@@ -142,10 +170,27 @@ while True:
                 value = ''.join(re.split(b'(\()', telegram_line)[1:])
                 telegram_values[code] = value
 
-        # Print the lines to screen
+        # Print the lines to screen and feed to xively
+        feed = api.feeds.get(FEED_ID)
         for code, value in sorted(telegram_values.items()):
             if code in list_of_interesting_codes:
                 # Cleanup value
                 value = float(value.lstrip(b'\(').rstrip(b'\)*kWhA'))
                 # Print nicely formatted string
                 print("{0:<63}{1:>8}".format(list_of_interesting_codes[code], value))
+                # Push data to Xively
+                tag = list_of_interesting_codes[code]
+                # Remove all non-word characters (everything except numbers and letters)
+                tag = re.sub(r"[^\w\s\(\)]", '', tag)
+                # Replace all runs of whitespace with a single dash
+                tag = re.sub(r"\s+", '-', tag)
+                # Create datastream and fill
+                datastream = get_datastream(feed, code, tag)
+                datastream.max_value = None
+                datastream.min_value = None
+                datastream.current_value = value
+                datastream.at = datetime.datetime.utcnow()
+                try:
+                    datastream.update()
+                except requests.HTTPError as e:
+                    print "HTTPError({0}): {1}".format(e.errno, e.strerror)
