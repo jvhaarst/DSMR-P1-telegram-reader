@@ -86,7 +86,7 @@ while True:
         while not checksum_found:
             # Read in a line
             telegram_line = ser.readline()
-            if debugging == 2:
+            if debugging >= 2:
                 print(telegram_line.decode('ascii').strip())
             # Check if it matches the checksum line (! at start)
             if re.match(b'(?=!)', telegram_line):
@@ -119,7 +119,7 @@ while True:
         if given_checksum == calculated_checksum:
             good_checksum = True
     if good_checksum:
-        if debugging == 1:
+        if debugging:
             print("Good checksum !")
         # Store the vaules in a dictionary
         telegram_values = dict()
@@ -128,14 +128,14 @@ while True:
             # Split the OBIS code from the value
             # The lines with a OBIS code start with a number
             if re.match(b'\d', telegram_line):
-                if debugging == 3:
+                if debugging >= 3:
                     print(telegram_line)
                 # The values are enclosed with parenthesis
                 # Find the location of the first opening parenthesis,
                 # and store all split lines
-                if debugging == 2:
+                if debugging >= 2:
                     print(telegram_line)
-                if debugging == 3:
+                if debugging >= 3:
                     print re.split(b'(\()', telegram_line)
                 # You can't put a list in a dict TODO better solution
                 code = ''.join(re.split(b'(\()', telegram_line)[:1])
