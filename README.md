@@ -14,6 +14,7 @@ Usage
 =====
 
 To run, first install needed python modules:
+
 ```
 virtualenv --python=python2 venv2;
 source venv2/bin/activate;
@@ -26,6 +27,7 @@ Xively
 ======
 
 To run in Xively mode, checkout this branch, and run it like this :
+
 ```FEED_ID=feed_number API_KEY=api_key_of_feed ./telegram_from_serial.py```
 
 Notes
