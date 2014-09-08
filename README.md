@@ -22,6 +22,12 @@ pip install -r requirements.txt;
 
 After that you can run the program with ```telegram_from_serial.py```.
 
+Xively
+======
+
+To run in Xively mode, checkout this branch, and run it like this :
+```FEED_ID=feed_number API_KEY=api_key_of_feed ./telegram_from_serial.py```
+
 Notes
 =====
 
