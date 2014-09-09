@@ -37,6 +37,20 @@ def get_datastream(feed, datastream, tag):
         return datastream
 
 
+# Function to get a list of existing datastreams
+def get_existing_datastreams(feed):
+    datastreams = dict()
+    for datastream in feed.datastreams.list():
+        m = re.search('\'.*\'', str(datastream))
+        code = m.group(0)
+        datastreams[code.replace('\'', '')] = datastream
+    if debugging >= 2:
+            print "Found existing datastreams :"
+            for key in datastreams:
+                print key
+    return datastreams
+
+
 # DSMR interesting codes
 list_of_interesting_codes = {
     '1-0:1.8.1': 'Meter Reading electricity delivered to client (Tariff 1) in kWh',
@@ -172,6 +186,7 @@ while True:
 
         # Print the lines to screen and feed to xively
         feed = api.feeds.get(FEED_ID)
+        existing_datastreams = get_existing_datastreams(feed)
         for code, value in sorted(telegram_values.items()):
             if code in list_of_interesting_codes:
                 # Cleanup value
@@ -187,8 +202,11 @@ while True:
                 code = re.sub(r"[^A-Za-z0-9\-\_\+]", ' ', code)
                 # Replace all runs of whitespace with a single dash
                 code = re.sub(r"\s+", '-', code)
-                # Create datastream and fill
-                datastream = get_datastream(feed, code, tag)
+                # Create datastream if it doesn't exist.
+                if code in existing_datastreams:
+                    datastream = existing_datastreams[code]
+                else:
+                    datastream = get_datastream(feed, code, tag)
                 datastream.max_value = None
                 datastream.min_value = None
                 datastream.current_value = value
