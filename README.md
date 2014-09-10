@@ -4,6 +4,8 @@ DSMR-P1-telegram-reader
 Python program to read Dutch Smart Meter Requirements (DSMR) telegrams from a serial port 
 connected to the P1 port of a smart meter, and print it on screen or push it to another site.
 
+There are different branches, the master just pretty prints the data, the xively branch adds pushing to xively.
+
 Installation
 ============
 
