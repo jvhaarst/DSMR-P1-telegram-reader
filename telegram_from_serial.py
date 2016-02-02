@@ -148,4 +148,4 @@ while True:
                 # Cleanup value
                 value = float(value.lstrip(b'\(').rstrip(b'\)*kWhA'))
                 # Print nicely formatted string
-                print("{0:<63}{1:>8}".format(list_of_interesting_codes[code], value))
+                print("{0:<63}{1:>12}".format(list_of_interesting_codes[code], value))
