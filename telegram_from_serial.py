@@ -16,7 +16,7 @@ list_of_interesting_codes = {
     '1-0:2.8.1': 'Meter Reading electricity delivered by dient (Tariff 1) in kWh',
     '1-0:2.8.2': 'Meter Reading electricity delivered by client (Tariff 2) in kWh',
     '0-0:96.14.0': 'Tariff indicator electricity',
-    '1-0:1.7.0': 'Actual electricity power delivered (+P) in kgitW',
+    '1-0:1.7.0': 'Actual electricity power delivered (+P) in kW',
     '1-0:2.7.0': 'Actual electricity power received (-P) in kW',
     '0-0:17.0.0': 'The actual threshold electricity in kW',
     '0-0:96.3.10': 'Switch position electricity',
