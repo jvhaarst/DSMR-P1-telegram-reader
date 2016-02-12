@@ -3,7 +3,6 @@
 
 import os
 import re
-import sys
 import serial
 import xively
 import datetime
@@ -93,7 +92,7 @@ good_checksum = False
 
 
 if production:
-    #Serial port configuration
+    # Serial port configuration
     ser = serial.Serial()
     ser.baudrate = 115200
     ser.bytesize = serial.EIGHTBITS
@@ -110,9 +109,10 @@ else:
 
 while True:
     try:
-        # Read in all the lines until we find the checksum (line starting with an exclamation mark)
+        # Read in all the lines until we find the checksum
+        # (line starting with an exclamation mark)
         if production:
-            #Open serial port
+            # Open serial port
             try:
                 ser.open()
                 telegram = ''
@@ -121,7 +121,6 @@ while True:
                 template = "An exception of type {0} occured. Arguments:\n{1!r}"
                 message = template.format(type(ex).__name__, ex.args)
                 print message
-                sys.exit("Fout bij het openen van %s. Programma afgebroken." % ser.name)
         else:
             telegram = ''
             checksum_found = False
@@ -144,12 +143,14 @@ while True:
         message = template.format(type(ex).__name__, ex.args)
         print message
         print("There was a problem %s, continuing...") % ex
-    #Close serial port
+    # Close serial port
     if production:
         try:
             ser.close()
-        except:
-            sys.exit("Oops %s. Programma afgebroken." % ser.name)
+        except Exception as ex:
+                template = "An exception of type {0} occured. Arguments:\n{1!r}"
+                message = template.format(type(ex).__name__, ex.args)
+                print message
     # We have a complete telegram, now we can process it.
     # Look for the checksum in the telegram
     for m in pattern.finditer(telegram):
@@ -215,3 +216,5 @@ while True:
                     datastream.update()
                 except requests.HTTPError as e:
                     print "HTTPError({0}): {1}".format(e.errno, e.strerror)
+                finally:
+                    print "There was an error updating xively, continuing."
