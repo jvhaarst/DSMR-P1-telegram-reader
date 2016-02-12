@@ -5,6 +5,7 @@ import re
 import sys
 import serial
 import crcmod.predefined
+import datetime
 
 # Debugging settings
 production = True   # Use serial or file as input
@@ -148,4 +149,6 @@ while True:
                 # Cleanup value
                 value = float(value.lstrip(b'\(').rstrip(b'\)*kWhA'))
                 # Print nicely formatted string
+		if debugging > 0:
+			print(datetime.datetime.utcnow()), 
                 print("{0:<63}{1:>12}".format(list_of_interesting_codes[code], value))
