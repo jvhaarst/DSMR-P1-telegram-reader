@@ -11,6 +11,7 @@ import datetime
 production = True   # Use serial or file as input
 debugging = 1   # Show extra output
 # DSMR interesting codes
+gas_meter = '1' 
 list_of_interesting_codes = {
     '1-0:1.8.1': 'Meter Reading electricity delivered to client (Tariff 1) in kWh',
     '1-0:1.8.2': 'Meter Reading electricity delivered to client (Tariff 2) in kWh',
@@ -37,9 +38,12 @@ list_of_interesting_codes = {
     '1-0:61.7.0': 'Instantaneous active power L3 (+P) in kW',
     '1-0:22.7.0': 'Instantaneous active power L1 (-P) in kW',
     '1-0:42.7.0': 'Instantaneous active power L2 (-P) in kW',
-    '1-0:62.7.0': 'Instantaneous active power L3 (-P) in kW'
+    '1-0:62.7.0': 'Instantaneous active power L3 (-P) in kW',
+    '0-'+gas_meter+':24.2.1': 'Last hourly value (temperature converted), gas delivered to client in m3'
 }
 
+max_len = max(map(len,list_of_interesting_codes.values()))
+    
 # Program variables
 # The true telegram ends with an exclamation mark after a CR/LF
 pattern = re.compile(b'\r\n(?=!)')
@@ -147,8 +151,14 @@ while True:
         for code, value in sorted(telegram_values.items()):
             if code in list_of_interesting_codes:
                 # Cleanup value
-                value = float(value.lstrip(b'\(').rstrip(b'\)*kWhA'))
+                # Gas needs another way to cleanup
+                if 'm3' in value:
+                        (time,value) = re.findall('\((.*?)\)',value)
+                        value = value= float(value.lstrip(b'\(').rstrip(b'\)*m3'))
+                else:
+                        value = float(value.lstrip(b'\(').rstrip(b'\)*kWhA'))
                 # Print nicely formatted string
+                print_string = '{0:<'+str(max_len)+'}{1:>12}'
 		if debugging > 0:
 			print(datetime.datetime.utcnow()), 
-                print("{0:<63}{1:>12}".format(list_of_interesting_codes[code], value))
+                print(print_string.format(list_of_interesting_codes[code], value))
