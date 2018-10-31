@@ -14,7 +14,7 @@ debugging = 1   # Show extra output
 list_of_interesting_codes = {
     '1-0:1.8.1': 'Meter Reading electricity delivered to client (Tariff 1) in kWh',
     '1-0:1.8.2': 'Meter Reading electricity delivered to client (Tariff 2) in kWh',
-    '1-0:2.8.1': 'Meter Reading electricity delivered by dient (Tariff 1) in kWh',
+    '1-0:2.8.1': 'Meter Reading electricity delivered by client (Tariff 1) in kWh',
     '1-0:2.8.2': 'Meter Reading electricity delivered by client (Tariff 2) in kWh',
     '0-0:96.14.0': 'Tariff indicator electricity',
     '1-0:1.7.0': 'Actual electricity power delivered (+P) in kW',
