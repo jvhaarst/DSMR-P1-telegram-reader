@@ -156,7 +156,7 @@ while True:
                 # Gas needs another way to cleanup
                 if 'm3' in value:
                         (time,value) = re.findall('\((.*?)\)',value)
-                        value = value= float(value.lstrip(b'\(').rstrip(b'\)*m3'))
+                        value = float(value.lstrip(b'\(').rstrip(b'\)*m3'))
                 else:
                         value = float(value.lstrip(b'\(').rstrip(b'\)*kWhA'))
                 # Print nicely formatted string
