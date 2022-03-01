@@ -17,12 +17,12 @@ Usage
 
 To run, first install needed python modules:
 ```
-virtualenv --python=python2 venv2;
-source venv2/bin/activate;
+virtualenv --python=python3 venv3;
+source venv3/bin/activate;
 pip install -r requirements.txt;
 ```
 
-After that you can run the program with ```telegram_from_serial.py```.
+After that you can run the program with ```./telegram_from_serial.py```.
 
 Notes
 =====
