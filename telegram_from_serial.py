@@ -16,7 +16,7 @@ def thread_print_json(name, messages):
         if len(messages) > 0:
             msg = messages.pop(0)
             print(json.dumps(msg, indent = 4))
-        time.sleep(1)
+        time.sleep(0.5)
 
 if __name__ == "__main__" :
     # Debugging settings
