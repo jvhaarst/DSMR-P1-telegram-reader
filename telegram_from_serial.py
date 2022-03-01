@@ -5,7 +5,7 @@ import re
 import sys
 import serial
 import crcmod.predefined
-import datetime
+from datetime import datetime
 import json
 
 # Debugging settings
@@ -21,7 +21,7 @@ list_of_interesting_codes = {
     '0-0:96.14.0': ['Tariff indicator electricity', 'tariffIndicator'],
     '1-0:1.7.0': ['Actual electricity power delivered (+P) in kW', 'actualPowerDelivered'],
     '1-0:2.7.0': ['Actual electricity power received (-P) in kW', ''],
-    '0-0:17.0.0': ['The actual threshold electricity in kW', 'threshold'],
+    '0-0:17.0.0': ['The actual threshold electricity in kW', ''],
     '0-0:96.3.10': ['Switch position electricity', 'switch'],
     '0-0:96.7.21': ['Number of power failures in any phase', 'failures'],
     '0-0:96.7.9': ['Number of long power failures in any phase', 'longFailures'],
@@ -162,7 +162,14 @@ while True:
         # Print the lines to screen
         #            print(json.dumps(telegram_values.items(), indent = 4))
         for code, value in sorted(telegram_values.items()):
-            if code in list_of_interesting_codes and len(list_of_interesting_codes[code][1]) > 0 :
+            # date-time of the telegram
+            if code == '0-0:1.0.0' :
+                timestamp = value.lstrip('\(').rstrip('\)')
+                print("Timestamp: " + timestamp)
+                ts = datetime.strptime(timestamp, '%y%m%d%H%M%SW')
+                print(ts)
+                json_values['dateTime'] = '' + ts.strftime("%Y-%m-%dT%H:%M:%S")
+            elif code in list_of_interesting_codes and len(list_of_interesting_codes[code][1]) > 0 :
                 # Cleanup value
                 # Gas needs another way to cleanup
                 if 'm3' in value:
