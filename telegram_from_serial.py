@@ -10,6 +10,7 @@ import json
 import threading
 import time
 import requests
+from collections import deque
 
 class Token:
     access_token = ''
@@ -27,21 +28,18 @@ def thread_print_json(name, messages):
     while True:
         # print("In thread: " + name + ", length: " + str(len(messages)) )
         if len(messages) > 0:
-            msg = messages.pop(0)
-            print(json.dumps(msg, indent = 4))
+            payload = dict()
+            data = []
+            while len(messages) > 0:
+                msg = messages.popleft()
+                data.append(msg)
+            payload['data'] = data
+            print(json.dumps(payload, indent = 4))
             getToken(token)
-        time.sleep(0.5)
+            # send the data
+        time.sleep(0.1)
 
 if __name__ == "__main__" :
-    # Some testing
-    # access_token_valid_until = 0
-    #token = Token()
-    #getToken(token)
-    #getToken(token)
-    #time.sleep(2)
-    #getToken(token)
-    #sys.exit("Token test")
-
     # Debugging settings
     production = True   # Use serial or file as input
     debugging = 1   # Show extra output
@@ -78,7 +76,7 @@ if __name__ == "__main__" :
         '0-'+gas_meter+':24.2.1': ['gas delivered to client in m3', 'totalGasDeliveredToClient']
     }
     # the list to pass messages to the thread
-    messages = list([])
+    messages = deque([])
 
     # Start helper threads
     jsonThread = threading.Thread(target=thread_print_json, args=("json", messages), daemon=True)
