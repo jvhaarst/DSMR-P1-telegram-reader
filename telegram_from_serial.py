@@ -20,14 +20,12 @@ def getToken(token):
    if  datetime.now() >= token.access_token_valid_until :
        r = requests.post("https://auth.reer.ink/token.php", data=payload, timeout=10)
        print(r.text)
-       token.access_token_valid_until = datetime.now() + timedelta(seconds=5)
-   else :
-       print("Reuse token")
+       token.access_token_valid_until = datetime.now() + timedelta(seconds=60)
 
 def thread_print_json(name, messages):
     token = Token()
     while True:
-        print("In thread: " + name + ", length: " + str(len(messages)) )
+        # print("In thread: " + name + ", length: " + str(len(messages)) )
         if len(messages) > 0:
             msg = messages.pop(0)
             print(json.dumps(msg, indent = 4))
@@ -99,6 +97,7 @@ if __name__ == "__main__" :
     # Create an empty telegram
     telegram = ''
     checksum_found = False
+    ser_is_open = False
     good_checksum = False
     count = 0
     
@@ -121,23 +120,22 @@ if __name__ == "__main__" :
     while True:
         try:
             # Read in all the lines until we find the checksum (line starting with an exclamation mark)
-            if production:
-                # Open serial port
-                try:
-                    if debugging == 1:
-                        print("Opening serial line, count {0}".format(count))
-                    count += 1
-                    ser.open()
-                    telegram = ''
-                    checksum_found = False
-                except Exception as ex:
-                    template = "An exception of type {0} occured. Arguments:\n{1!r}"
-                    message = template.format(type(ex).__name__, ex.args)
-                    print(message)
-                    sys.exit("Fout bij het openen van %s. Programma afgebroken." % ser.name)
-            else:
-                telegram = ''
-                checksum_found = False
+            telegram = ''
+            checksum_found = False
+            if production :
+                if not ser_is_open :
+                    # Open serial port
+                    try:
+                        if debugging == 1:
+                            print("Opening serial line, count {0}".format(count))
+                        count += 1
+                        ser.open()
+                        ser_is_open = True
+                    except Exception as ex:
+                        template = "An exception of type {0} occured. Arguments:\n{1!r}"
+                        message = template.format(type(ex).__name__, ex.args)
+                        print(message)
+                        sys.exit("Fout bij het openen van %s. Programma afgebroken." % ser.name)
             while not checksum_found:
                 # Read in a line
                 telegram_line = ser.readline().decode('ascii')
@@ -146,7 +144,7 @@ if __name__ == "__main__" :
                 # Check if it matches the checksum line (! at start)
                 if re.match('(?=!)', telegram_line):
                     telegram = telegram + telegram_line
-                    if debugging:
+                    if debugging > 1:
                         print('Found checksum!')
                     checksum_found = True
                 else:
@@ -158,11 +156,12 @@ if __name__ == "__main__" :
             print(message)
             print("There was a problem %s, continuing...") % ex
         # Close serial port
-        if production:
+        if production and False:
             try:
                 if debugging == 1:
                     print("Closing serial line")
                 ser.close()
+                ser_is_open = False
             except:
                 sys.exit("Oops %s. Programma afgebroken." % ser.name)
         # We have a complete telegram, now we can process it.
@@ -176,7 +175,7 @@ if __name__ == "__main__" :
             if given_checksum == calculated_checksum:
                 good_checksum = True
         if good_checksum:
-            if debugging == 1:
+            if debugging > 1:
                 print("Good checksum !")
             # Store the vaules in a dictionary
             telegram_values = dict()
