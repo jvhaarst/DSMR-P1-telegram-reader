@@ -10,38 +10,47 @@ import json
 import threading
 import time
 import requests
+from collections import deque
 
 class Token:
+    clientId = ''
+    clientSecret = ''
+    scope = ''
     access_token = ''
     access_token_valid_until = datetime.now()
 
+    def __init__(self, clientId, clientSecret, scope):
+        self.clientId = clientId
+        self.clientSecret = clientSecret
+        self.scope = scope
+
+
 def getToken(token):
-   payload = {'grant_type': 'client_credentials', 'client_id': 'frank', 'client_secret': 'geheim', 'scope': 'write:ddns'} 
+   payload = {'grant_type': 'client_credentials', 'client_id': token.clientId, 'client_secret': token.clientSecret, 'scope': token.scope} 
    if  datetime.now() >= token.access_token_valid_until :
        r = requests.post("https://auth.reer.ink/token.php", data=payload, timeout=10)
        print(r.text)
        token.access_token_valid_until = datetime.now() + timedelta(seconds=60)
 
-def thread_print_json(name, messages):
-    token = Token()
+def thread_print_json(name, messages, config):
+    token = Token(config["token"]["clientId"], 
+                  config["token"]["clientSecret"],
+                  config["token"]["scope"])
     while True:
         # print("In thread: " + name + ", length: " + str(len(messages)) )
         if len(messages) > 0:
-            msg = messages.pop(0)
-            print(json.dumps(msg, indent = 4))
+            payload = dict()
+            data = []
+            while len(messages) > 0:
+                msg = messages.popleft()
+                data.append(msg)
+            payload['data'] = data
+            print(json.dumps(payload, indent = 4))
             getToken(token)
-        time.sleep(0.5)
+            # send the data
+        time.sleep(0.1)
 
 if __name__ == "__main__" :
-    # Some testing
-    # access_token_valid_until = 0
-    #token = Token()
-    #getToken(token)
-    #getToken(token)
-    #time.sleep(2)
-    #getToken(token)
-    #sys.exit("Token test")
-
     # Debugging settings
     production = True   # Use serial or file as input
     debugging = 1   # Show extra output
@@ -78,10 +87,13 @@ if __name__ == "__main__" :
         '0-'+gas_meter+':24.2.1': ['gas delivered to client in m3', 'totalGasDeliveredToClient']
     }
     # the list to pass messages to the thread
-    messages = list([])
+    messages = deque([])
+
+    # Read application configuration
+    config = json.load(open("config.json", 'r'))
 
     # Start helper threads
-    jsonThread = threading.Thread(target=thread_print_json, args=("json", messages), daemon=True)
+    jsonThread = threading.Thread(target=thread_print_json, args=("json", messages, config), daemon=True)
     jsonThread.start()
 
     max_len = 72
@@ -228,7 +240,6 @@ if __name__ == "__main__" :
                                 print(datetime.datetime.utcnow()),
                         print(print_string.format(code, value))
             if print_format == 'json' :
-                # print(json.dumps(json_values, indent = 4))
                 messages.append(json_values)
         else:
             print("Bad checksum")
