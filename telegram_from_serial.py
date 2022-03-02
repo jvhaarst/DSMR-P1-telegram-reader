@@ -13,18 +13,29 @@ import requests
 from collections import deque
 
 class Token:
+    clientId = ''
+    clientSecret = ''
+    scope = ''
     access_token = ''
     access_token_valid_until = datetime.now()
 
+    def __init__(self, clientId, clientSecret, scope):
+        self.clientId = clientId
+        self.clientSecret = clientSecret
+        self.scope = scope
+
+
 def getToken(token):
-   payload = {'grant_type': 'client_credentials', 'client_id': 'frank', 'client_secret': 'geheim', 'scope': 'write:ddns'} 
+   payload = {'grant_type': 'client_credentials', 'client_id': token.clientId, 'client_secret': token.clientSecret, 'scope': token.scope} 
    if  datetime.now() >= token.access_token_valid_until :
        r = requests.post("https://auth.reer.ink/token.php", data=payload, timeout=10)
        print(r.text)
        token.access_token_valid_until = datetime.now() + timedelta(seconds=60)
 
-def thread_print_json(name, messages):
-    token = Token()
+def thread_print_json(name, messages, config):
+    token = Token(config["token"]["clientId"], 
+                  config["token"]["clientSecret"],
+                  config["token"]["scope"])
     while True:
         # print("In thread: " + name + ", length: " + str(len(messages)) )
         if len(messages) > 0:
@@ -78,8 +89,11 @@ if __name__ == "__main__" :
     # the list to pass messages to the thread
     messages = deque([])
 
+    # Read application configuration
+    config = json.load(open("config.json", 'r'))
+
     # Start helper threads
-    jsonThread = threading.Thread(target=thread_print_json, args=("json", messages), daemon=True)
+    jsonThread = threading.Thread(target=thread_print_json, args=("json", messages, config), daemon=True)
     jsonThread.start()
 
     max_len = 72
@@ -226,7 +240,6 @@ if __name__ == "__main__" :
                                 print(datetime.datetime.utcnow()),
                         print(print_string.format(code, value))
             if print_format == 'json' :
-                # print(json.dumps(json_values, indent = 4))
                 messages.append(json_values)
         else:
             print("Bad checksum")
