@@ -17,9 +17,11 @@ class Token:
     clientSecret = ''
     scope = ''
     access_token = ''
+    type = ''
     access_token_valid_until = datetime.now()
 
-    def __init__(self, clientId, clientSecret, scope):
+    def __init__(self, url, clientId, clientSecret, scope):
+        self.url = url
         self.clientId = clientId
         self.clientSecret = clientSecret
         self.scope = scope
@@ -28,12 +30,19 @@ class Token:
 def getToken(token):
    payload = {'grant_type': 'client_credentials', 'client_id': token.clientId, 'client_secret': token.clientSecret, 'scope': token.scope} 
    if  datetime.now() >= token.access_token_valid_until :
-       r = requests.post("https://auth.reer.ink/token.php", data=payload, timeout=10)
-       print(r.text)
-       token.access_token_valid_until = datetime.now() + timedelta(seconds=60)
+       r = requests.post(token.url, data=payload, timeout=10)
+       if r.status_code == 200:
+           t = json.loads(r.text)
+           print(t)
+           token.access_token = t["access_token"]
+           token.type = t["token_type"]
+           token.access_token_valid_until = datetime.now() + timedelta(seconds=t["expires_in"])
+       else:
+           print(r.status_code)
 
 def thread_print_json(name, messages, config):
-    token = Token(config["token"]["clientId"], 
+    token = Token(config["token"]["url"],
+                  config["token"]["clientId"], 
                   config["token"]["clientSecret"],
                   config["token"]["scope"])
     while True:
@@ -48,7 +57,10 @@ def thread_print_json(name, messages, config):
             print(json.dumps(payload, indent = 4))
             getToken(token)
             # send the data
-        time.sleep(0.1)
+            r = requests.post(config["send"]["url"], json=payload, headers={'Authorization': token.type + ' ' + token.access_token})
+            if r.status_code != 200:
+                print(r.status_code)
+        time.sleep(config["send"]["sleepSec"])
 
 if __name__ == "__main__" :
     # Debugging settings
